@@ -10,8 +10,7 @@ class ActionType(str, Enum):
     ADD_TASK = "add_task"
     COMPLETE_TASK = "complete_task"
     UPDATE_TASK = "update_task"
-    ADD_SECTION = "add_section"
-
+    ADD_SECTION = "add_section
 class Priority(str, Enum):
     HIGHEST = "⏫"
     HIGH = "🔼"
@@ -49,34 +48,11 @@ class LLMAction(BaseModel):
     action_data: Union[TaskUpdate, SummaryUpdate, TaskCompletion, SectionAddition]
     reasoning: str = Field(..., description="Explanation for why this action is being taken")
 
-
-def validate_llm_response(response_text: str) -> List[LLMAction]:
-    try:
-        # Parse JSON response
-        import json
-        actions_data = json.loads(response_text)
-
-        # Handle single action or list of actions
-        if isinstance(actions_data, dict):
-            actions_data = [actions_data]
-
-        # Validate each action
-        validated_actions = []
-        for action_data in actions_data:
-            action = LLMAction(**action_data)
-            validated_actions.append(action)
-
-        return validated_actions
-
-    except Exception as e:
-        raise ValueError(f"Invalid LLM response format: {e}")
-
 class ActionExecutor:
     def __init__(self, vault_path: str):
         self.vault_path = vault_path
 
     def execute_action(self, action: LLMAction) -> bool:
-
         if action.action_type == ActionType.ADD_TASK:
             return self._add_task(action.action_data)
         elif action.action_type == ActionType.UPDATE_SUMMARY:

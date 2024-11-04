@@ -1,21 +1,11 @@
 import instructor
-from pydantic import BaseModel
-from obsidian_debrief.prompts.system import SYSTEM_PROMPT
-from openai import OpenAI
 import obsidiantools.api as otools
-from pathlib import Path
+from openai import OpenAI
+from pydantic import BaseModel
 
 # Import our previously defined models and prompt
-from obsidian_debrief.actions import (
-    LLMAction,
-    ActionType,
-    TaskUpdate,
-    SummaryUpdate,
-    TaskCompletion,
-    SectionAddition,
-    ActionExecutor,
-    validate_llm_response,
-)
+from obsidian_debrief.actions import ActionExecutor, LLMAction
+from obsidian_debrief.prompts.system import SYSTEM_PROMPT
 
 
 class ActionList(BaseModel):
@@ -23,7 +13,6 @@ class ActionList(BaseModel):
 
 
 def test_vault_action(vault_path: str, user_request: str) -> list[LLMAction]:
-
     # Initialize vault connection
     vault = otools.Vault(vault_path).connect().gather()
 
@@ -60,7 +49,6 @@ def test_vault_action(vault_path: str, user_request: str) -> list[LLMAction]:
     )
 
     return response
-
 
 if __name__ == "__main__":
     VAULT_PATH = "/home/walkenz1/Sync/HomeVault"
@@ -123,14 +111,3 @@ def process_user_request(vault_path: str, request: str) -> None:
             print("Action skipped")
 
 
-# Interactive usage example:
-if __name__ == "__main__":
-    request = """
-    Add a high priority task for the API documentation review with these details:
-    - Due next Friday
-    - Tag with #documentation and #review
-    - Add to the Technical/API/Tasks.md file
-    - Put it under the 'Documentation Tasks' section
-    """
-
-    process_user_request(VAULT_PATH, request)

@@ -1,7 +1,6 @@
 from typing import List
 
 import instructor
-import obsidiantools.api as otools
 from openai import OpenAI
 from pydantic import BaseModel, Field
 

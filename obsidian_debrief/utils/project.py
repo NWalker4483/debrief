@@ -2,10 +2,12 @@ import re
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import List, Optional
 
 import obsidiantools.api as otools
 from pydantic import BaseModel, Field
+
+from obsidian_debrief.utils.files import ObsidianFile, Project
 
 
 class TaskPriority(str, Enum):
@@ -22,47 +24,6 @@ class Task(BaseModel):
     completion_date: Optional[datetime] = None
     tags: List[str] = Field(default_factory=list)
 
-    class Config:
-        use_enum_values = True
-
-class ObsidianFile(BaseModel):
-    name: str
-    path: Path
-    content: str
-    tasks: List[Task] = Field(default_factory=list)
-    tags: List[str] = Field(default_factory=list)
-    front_matter: Dict = Field(default_factory=dict)
-    backlinks: List[str] = Field(default_factory=list)
-    wikilinks: List[str] = Field(default_factory=list)
-
-    class Config:
-        arbitrary_types_allowed = True
-
-class Project(BaseModel):
-    main_file: ObsidianFile
-    working_files: List[ObsidianFile] = Field(default_factory=list)
-    status: str = Field(default="active")
-    priority: Optional[TaskPriority] = None
-    start_date: Optional[datetime] = None
-    due_date: Optional[datetime] = None
-
-    class Config:
-        arbitrary_types_allowed = True
-
-    @property
-    def all_tasks(self) -> List[Task]:
-        tasks = self.main_file.tasks.copy()
-        for file in self.working_files:
-            tasks.extend(file.tasks)
-        return tasks
-
-    @property
-    def pending_tasks(self) -> List[Task]:
-        return [task for task in self.all_tasks if not task.completed]
-
-    @property
-    def completed_tasks(self) -> List[Task]:
-        return [task for task in self.all_tasks if task.completed]
 
 def parse_task_line(task_line: str) -> Optional[Task]:
     CHECKBOX_PATTERN = r"- \[([ xX])\]"
@@ -115,9 +76,9 @@ class ProjectLoader:
         self.vault_path = Path(vault_path).resolve()
         if not self.vault_path.exists():
             raise ValueError(f"Vault path does not exist: {self.vault_path}")
-        
+
         self.vault = otools.Vault(str(self.vault_path)).connect().gather()
-        
+
     def _resolve_file_path(self, filename: str) -> Path:
         """Resolve the actual file path from the vault index"""
         relative_path = self.vault.md_file_index[filename]
@@ -150,7 +111,7 @@ class ProjectLoader:
     def load_project(self, main_file_name: str) -> Optional[Project]:
         """Load a project from its main file"""
         main_file = self._load_file(main_file_name)
-        
+
         # Verify project tag exists
         if not any('project' in tag.lower() for tag in main_file.tags):
             return None
@@ -194,21 +155,21 @@ def parse_file_tasks(content: str) -> List[Task]:
 
 if __name__ == "__main__":
     VAULT_PATH = "/home/walkenz1/Sync/HomeVault"
-    
+
     # Initialize and validate vault path
     vault_path = Path(VAULT_PATH).resolve()
     print(f"Loading vault from: {vault_path}")
-    
+
     loader = ProjectLoader(VAULT_PATH)
-    
+
     # Display available files before processing
     print("\nAvailable files in vault:")
     for filename, filepath in loader.vault.md_file_index.items():
         print(f"- {filename}: {filepath}")
-    
+
     # Load and display projects
     projects = loader.load_all_projects()
-    
+
     print(f"\nFound {len(projects)} projects:")
     for project in projects:
         print(f"\nProject: {project.main_file.name}")

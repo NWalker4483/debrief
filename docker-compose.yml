@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  debrief:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - DATABASE_URL=${DATABASE_URL}
+      - PORT=${PORT:-3000}
+      # Add any other environment variables your debrief app needs
+    volumes:
+      - ${DEBRIEF_DATA_PATH}:/vault
+    ports:
+      - "${HOST_PORT:-3000}:${PORT:-3000}"

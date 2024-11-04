@@ -12,6 +12,7 @@ obsidiantools = "^0.10.0"
 pydantic = "^2.9.2"
 instructor = "^1.6.3"
 requests = "^2.32.3"
+python-dotenv = "^1.0.1"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.7.0"
